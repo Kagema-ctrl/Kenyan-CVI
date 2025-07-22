@@ -1,0 +1,137 @@
+// Define the year of interest (2024)
+var start = ee.Date('2024-01-01');
+var end = ee.Date('2024-12-31');
+
+// Define the area of interest (AOI) 
+var roi = ee.FeatureCollection("projects/ee-kagema/assets/ROI");
+
+// Function to mask clouds and shadows for Landsat 9 images
+function maskLandsat9(image) {
+  var qaPixel = image.select('QA_PIXEL');
+  
+  // Bits for cloud and shadow masking
+  var cloudBitMask = (1 << 3);
+  var shadowBitMask = (1 << 4);
+  
+  // Mask clouds and shadows
+  var mask = qaPixel.bitwiseAnd(cloudBitMask).eq(0)
+             .and(qaPixel.bitwiseAnd(shadowBitMask).eq(0));
+  
+  return image.updateMask(mask).divide(10000); // Scale to reflectance
+}
+
+// Get Landsat 9 collection for the year 2024
+var collection = ee.ImageCollection('LANDSAT/LC09/C02/T1_L2')
+  .filterDate(start, end)
+  .filterBounds(roi)
+  .map(maskLandsat9);
+
+// Create a median composite
+var composite = collection.median().clip(roi);
+
+// Select bands for Landsat 9
+var bands = ['SR_B2', 'SR_B3', 'SR_B4', 'SR_B5', 'SR_B6', 'SR_B7'];
+
+// Visualize the composite
+Map.addLayer(composite, {bands: ['SR_B4', 'SR_B3', 'SR_B2'], min: 0, max: 0.3}, 'Composite_2024');
+
+// Define coastal geomorphology classes
+var SandyBeach_Mudflats = SandyBeach_Mudflats.map(function(feature) {
+  return feature.set('Class', 1);  
+});
+var Mangroves = Mangroves.map(function(feature) {
+  return feature.set('Class', 2);  
+});
+var Beach_Forests = Beach_Forests.map(function(feature) {
+  return feature.set('Class', 3);  
+});
+var Dune = Dune.map(function(feature) {
+  return feature.set('Class', 4);  
+});
+var Cliff_RockyCoasts = Cliff_RockyCoasts.map(function(feature) {
+  return feature.set('Class', 5);  
+});
+
+// Merge the collections into a single feature collection for coastal geomorphology classes
+var coastalGeomorphologyClasses = SandyBeach_Mudflats.merge(Mangroves).merge(Beach_Forests).merge(Dune).merge(Cliff_RockyCoasts);
+
+// Ensure the classes intersect the area of interest
+coastalGeomorphologyClasses = coastalGeomorphologyClasses.filterBounds(roi);
+
+// Create the training data from the feature collections
+var training = composite.select(bands).sampleRegions({
+  collection: coastalGeomorphologyClasses,
+  properties: ['Class'],  // Use 'Class' property
+  scale: 30 // Landsat 9 spatial resolution
+});
+
+// Split the data into training and validation sets
+var randomColumn = training.randomColumn();
+var trainingData = randomColumn.filter(ee.Filter.gte('random', 0.3));
+var validationData = randomColumn.filter(ee.Filter.lte('random', 0.3));
+
+// Train the classifier using Random Forest with 500 trees
+var classifier = ee.Classifier.smileRandomForest(500).train({
+  features: trainingData,
+  classProperty: 'Class',  // Use 'Class' as the class property
+  inputProperties: bands
+});
+
+// Classify the composite image
+var classified = composite.select(bands).classify(classifier).clip(roi);
+
+// Visualize the classification
+Map.addLayer(classified, {min: 1, max: 5, palette: ['red', 'green', 'blue', 'yellow', 'purple']}, 'Classification_2024');
+
+// Calculate areas for each class
+var areaImage = ee.Image.pixelArea().addBands(classified);
+var areas = areaImage.reduceRegion({
+  reducer: ee.Reducer.sum().group({
+    groupField: 1,
+    groupName: 'Class'  // Use 'Class' as the group name
+  }),
+  geometry: roi,
+  scale: 30, // Landsat 9 spatial resolution
+  maxPixels: 1e13
+});
+
+// Print the areas
+print('Areas for 2024:', areas);
+
+// Export classified image to Google Drive (GeoTIFF)
+Export.image.toDrive({
+  image: classified,
+  description: 'Coast_Geomorphology_Landsat9',
+  scale: 30,  // Landsat 9 spatial resolution
+  region: roi,
+  fileFormat: 'GeoTIFF',
+  folder: 'EarthEngineExports',
+  crs: 'EPSG:4326'
+});
+
+// Convert the classified image to vector (Shapefile) with geometry parameter
+var vector = classified.reduceToVectors({
+  reducer: ee.Reducer.mode(),
+  scale: 30,  // Landsat 9 spatial resolution
+  maxPixels: 1e8,
+  geometryType: 'polygon',  // Specify the geometry type as polygon
+  crs: 'EPSG:4326',  // Coordinate reference system
+  tileScale: 16,  // To handle large images (optional, can be adjusted)
+  geometry: roi  // Add the geometry parameter for bounded processing
+});
+
+// Export the vector as a shapefile
+Export.table.toDrive({
+  collection: vector,
+  description: 'Coast_Geomorphology_Landsat9_Vector',
+  fileFormat: 'SHP',
+  folder: 'EarthEngineExports'
+});
+
+// Export the area calculations to Google Drive as a CSV file
+Export.table.toDrive({
+  collection: ee.FeatureCollection(ee.Feature(null, areas)),
+  description: 'Area_Calculations_2024',
+  fileFormat: 'CSV',
+  folder: 'EarthEngineExports'
+});
