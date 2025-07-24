@@ -1,6 +1,49 @@
-# Kenyan-CVI
-Assessment of the vulnerability of Kenya’s coastline to sea-level rise (SLR) by establishing a Coastal Vulnerability Index (CVI), which integrates both Physical Vulnerability Index (PVI) and Socioeconomic Vulnerability Index (SoVI). Employing Geographic Information Systems (GIS) and remote sensing technologies, the research methodically evaluates coastal risks using a multidimensional approach that considers an array of physical and socioeconomic indicators.
-Physical vulnerability, quantified through the PVI, is assessed based on factors such as coastal slope, geomorphology, and rates of shoreline change. The average PVI value calculated was 42.38, indicating a moderate level of physical exposure across the study area. This suggests varying degrees of natural susceptibility to physical processes like erosion and flooding, particularly accentuated in geomorphologically dynamic regions.
-Socioeconomic vulnerability, represented by the SoVI, includes metrics such as population density, land use, and infrastructure proximity to the shoreline. The computed average SoVI value was significantly higher at 71.02, highlighting the greater influence of human factors on coastal vulnerability. This higher index underscores the acute socioeconomic challenges, including high population pressures and intensive land use, which amplify the risk and potential impacts of coastal hazards.
-Combining these dimensions, the overall CVI was calculated with an average value of 50.97, reflecting an aggregated medium vulnerability to SLR along the Kenyan coastline. This integrated index is instrumental in identifying areas of high vulnerability, which require prioritized and targeted interventions to mitigate the impacts of rising sea levels and associated coastal hazards.
+# 🌊 Coastal Vulnerability Mapping in Kenya  
+**CVI-Based GIS Assessment of Sea-Level Rise Risks**
+
+---
+
+## 📍 Project Overview
+
+This project evaluates the vulnerability of **Kenya’s coastline** to **sea-level rise (SLR)** by developing a **Coastal Vulnerability Index (CVI)**. The CVI combines two key components:
+
+- **🌐 Physical Vulnerability Index (PVI)** – based on coastal slope, geomorphology, and shoreline change  
+- **👥 Socioeconomic Vulnerability Index (SoVI)** – based on population density, land use, and infrastructure proximity
+
+By integrating these two dimensions in a GIS environment, the project identifies areas most at risk from rising sea levels.
+
+---
+
+## 📊 Key Findings
+
+- **📈 Average PVI**: 42.38 — indicates a moderate level of physical exposure  
+- **🏙️ Average SoVI**: 71.02 — highlights high socioeconomic pressure on coastal regions  
+- **⚖️ Overall CVI**: 50.97 — reflects **medium vulnerability** along Kenya's coastline
+
+These results suggest that while natural factors pose moderate risks, human activities significantly amplify the impact of SLR.
+
+---
+
+## 🛠️ Tools & Techniques
+
+- **GIS Software**: ArcGIS Pro / QGIS  
+- **Remote Sensing**: Satellite-derived shoreline data  
+- **Data Analysis**: Weighted index modeling  
+- **Visualization**: Thematic maps for spatial interpretation
+
+---
+
+## 🌍 Why It Matters
+
+This CVI-based approach helps:
+- Identify **high-risk coastal zones**  
+- Support **data-driven planning** and **climate adaptation**  
+- Guide **targeted interventions** to reduce SLR impacts on both people and infrastructure
+
+---
+
+## 👩‍💻 Author
+
+**Kagema Abigail Wambui**  
+BSc. Geomatic Engineering & GIS
 
